@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FountainPi Editor v0.0.9d</title>
+<link rel="icon" href="data:;base64,=">
+<style>
+  :root{
+    --bg:#0f1115; --card:#161922; --ink:#e6e6e6;
+    --muted:#97a0b0; --accent:#7bdcff; --accent2:#ffd36b;
+    --border:#222634; --panel-bg:#1a1f2e;
+  }
+
+  html,body,#app{height:100%}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Inter,Arial
+  }
+
+  .topbar{
+    display:flex;
+    gap:.5rem;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    padding:.5rem .75rem;
+    background:var(--card);
+    border-bottom:1px solid var(--border);
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+
+  .group{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.35rem;
+    align-items:center;
+    padding:.4rem .5rem;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#121724;
+  }
+
+  .btn{
+    border:1px solid #2b3042;
+    background:#1a1f2e;
+    color:var(--ink);
+    padding:.45rem .7rem;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:.8rem;
+    line-height:1rem;
+  }
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+
+  .slider{accent-color:var(--accent)}
+
+  .panel{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:.5rem;
+  }
+
+  .sw{
+    width:22px;
+    height:22px;
+    border-radius:6px;
+    border:1px solid #2b3042;
+    cursor:pointer;
+    display:inline-block;
+  }
+  .sw.sel{
+    outline:2px solid var(--accent);
+  }
+
+  .muted{
+    color:var(--muted);
+    font-size:.8rem;
+    line-height:1rem;
+  }
+
+  audio{
+    width:100%;
+    margin:.25rem .75rem;
+  }
+
+  .chk{
+    display:flex;
+    align-items:center;
+    gap:.35rem;
+    padding:.25rem .5rem;
+    border:1px solid #2b3042;
+    border-radius:10px;
+    background:#121724;
+    font-size:.75rem;
+    line-height:1rem;
+    color:var(--muted);
+  }
+
+  .stack{
+    padding:.5rem;
+  }
+
+  .ruler{
+    height:22px;
+    background:#0e131f;
+    border-bottom:1px solid #1b2131;
+    color:#9fb0cc;
+    font-size:12px;
+    display:flex;
+    align-items:center;
+    padding:0 .5rem;
+    cursor: ew-resize;
+  }
+
+  .editorWrap{
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    position:relative;
+    background:#0b0f16;
+  }
+
+  .editorScroll{
+    overflow:auto;
+    width:100%;
+    height:100%;
+    position:relative;
+  }
+
+  .resizeHandle{
+    height:8px;
+    cursor: ns-resize;
+    background:#101520;
+    border-top:1px solid #1b2131;
+  }
+
+  .rightLabelsOverlay{
+    position:absolute;
+    top:0;
+    right:0;
+    pointer-events:none;
+  }
+
+  /* custom context menu */
+  .ctxMenu{
+    position:absolute;
+    z-index:9999;
+    background:#1a1f2e;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:.5rem .6rem;
+    min-width:180px;
+    box-shadow:0 20px 40px rgba(0,0,0,.6);
+    font-size:.8rem;
+    color:var(--ink);
+  }
+
+  .ctxRow{
+    margin-bottom:.5rem;
+  }
+  .ctxRow:last-child{
+    margin-bottom:0;
+  }
+
+  .ctxLabel{
+    font-size:.7rem;
+    font-weight:500;
+    color:var(--muted);
+    margin-bottom:.25rem;
+  }
+
+  .ctxSwatchWrap{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.4rem;
+  }
+
+  .ctxSwatch{
+    width:20px;
+    height:20px;
+    border-radius:6px;
+    border:1px solid #2b3042;
+    cursor:pointer;
+  }
+
+  .ctxFxList{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.4rem;
+  }
+
+  .ctxFxBtn{
+    border:1px solid #2b3042;
+    background:#0f1422;
+    border-radius:8px;
+    padding:.3rem .5rem;
+    cursor:pointer;
+    font-size:.7rem;
+    line-height:1rem;
+    color:var(--ink);
+  }
+
+  .ctxSliderRow{
+    display:flex;
+    align-items:center;
+    gap:.4rem;
+    font-size:.7rem;
+    line-height:1rem;
+    color:var(--muted);
+  }
+
+  .ctxSliderRow input[type=range]{
+    flex:1;
+    accent-color:var(--accent);
+  }
+
+  .ctxApplyBtn{
+    width:100%;
+    text-align:center;
+    background:#2a354f;
+    border:1px solid #46527a;
+    border-radius:8px;
+    padding:.4rem .5rem;
+    color:var(--ink);
+    font-size:.75rem;
+    cursor:pointer;
+  }
+
+  /* little inline overlay text in notes */
+  .noteLabel{
+    font-size:10px;
+    font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Inter,Arial;
+    fill:#fff;
+    text-shadow:0 0 4px rgba(0,0,0,.8);
+  }
+
+  /* slider value bubble in toolbar rows */
+  .valBubble{
+    min-width:2ch;
+    text-align:right;
+    font-size:.7rem;
+    line-height:1rem;
+    color:var(--accent2);
+    font-family:monospace;
+  }
+</style>
+</head>
+<body>
+  <audio id="audio" controls></audio>
+  <div id="app"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
